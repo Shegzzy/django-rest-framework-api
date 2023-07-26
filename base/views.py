@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Advocate
 from .serializers import AdvocateSerializer
+from django.db.models import Q
 
 # Create your views here.
 
@@ -16,8 +17,13 @@ def endpoints(request):
 
 @api_view(["GET"])
 def advocate_list(request):
-    # data = ["Segun", "Max", "Dennis", "John", "Emmanuel"]
-    advocate = Advocate.objects.all()
+    query = request.GET.get("query")
+    if query == None:
+        query = ""
+
+    advocate = Advocate.objects.filter(
+        Q(username__icontains=query) | Q(bio__icontains=query)
+    )
     serializer = AdvocateSerializer(advocate, many=True)
     return Response(serializer.data)
 
