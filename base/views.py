@@ -15,17 +15,27 @@ def endpoints(request):
     return Response(data)
 
 
-@api_view(["GET"])
+@api_view(["GET", "POST"])
 def advocate_list(request):
-    query = request.GET.get("query")
-    if query == None:
-        query = ""
+    # Handle GET request
+    if request.method == "GET":
+        query = request.GET.get("query")
+        if query == None:
+            query = ""
 
-    advocate = Advocate.objects.filter(
-        Q(username__icontains=query) | Q(bio__icontains=query)
-    )
-    serializer = AdvocateSerializer(advocate, many=True)
-    return Response(serializer.data)
+        advocate = Advocate.objects.filter(
+            Q(username__icontains=query) | Q(bio__icontains=query)
+        )
+        serializer = AdvocateSerializer(advocate, many=True)
+        return Response(serializer.data)
+
+    # Handle POST requests
+    if request.method == "POST":
+        advocate = Advocate.objects.create(
+            username=request.data["username"], bio=request.data["bio"]
+        )
+        serializer = AdvocateSerializer(advocate, many=False)
+        return Response(serializer.data)
 
 
 @api_view(["GET"])
