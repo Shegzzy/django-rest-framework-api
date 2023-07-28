@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from .models import Advocate
 from .serializers import AdvocateSerializer
 from django.db.models import Q
+from rest_framework.views import APIView
 
 # Create your views here.
 
@@ -38,22 +39,50 @@ def advocate_list(request):
         return Response(serializer.data)
 
 
-@api_view(["GET", "PUT", "DELETE"])
-def advocate_detail(request, username):
-    advocate = Advocate.objects.get(username=username)
+# @api_view(["GET", "PUT", "DELETE"])
+# def advocate_detail(request, username):
+#     advocate = Advocate.objects.get(username=username)
 
-    if request.method == "GET":
+#     if request.method == "GET":
+#         serializer = AdvocateSerializer(advocate, many=False)
+#         return Response(serializer.data)
+
+#     if request.method == "PUT":
+#         advocate.username = request.data["username"]
+#         advocate.bio = request.data["bio"]
+
+#         advocate.save()
+#         serializer = AdvocateSerializer(advocate, many=False)
+#         return Response(serializer.data)
+
+#     if request.method == "DELETE":
+#         advocate.delete()
+#         return redirect(request, "/advocates")
+
+
+class AdvocateDetail(APIView):
+    def get_object(self, username):
+        try:
+            return Advocate.objects.get(username=username)
+        except Advocate.DoesNotExist:
+            raise Advocate
+
+    def get(self, request, username):
+        advocate = self.get_object(username)
         serializer = AdvocateSerializer(advocate, many=False)
+
         return Response(serializer.data)
 
-    if request.method == "PUT":
+    def put(self, request, username):
+        advocate = self.get_object(username)
+
         advocate.username = request.data["username"]
         advocate.bio = request.data["bio"]
 
-        advocate.save()
         serializer = AdvocateSerializer(advocate, many=False)
         return Response(serializer.data)
 
-    if request.method == "DELETE":
+    def delete(self, request, username):
+        advocate = self.get_object(username)
         advocate.delete()
-        return redirect(request, "/advocates")
+        return Response("Deleted")
